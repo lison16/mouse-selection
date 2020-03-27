@@ -19,7 +19,7 @@ import FrameSelection from './lib/index';
 @Component({
   data() {
     return {
-      mode: 'wrapper',
+      mode: 'wrapper'
     };
   },
   mounted() {
@@ -43,8 +43,19 @@ import FrameSelection from './lib/index';
     const wrapperFrameSelection = new FrameSelection(
       document.querySelector('.left-wrapper'),
       {
-        on: {},
-      },
+        on: {
+          mousemove(event) {
+            // console.log(event.pageX);
+          },
+          click(event) {}
+        }
+      }
+    );
+    const rightWrapperFrameSelection = new FrameSelection(
+      document.querySelector('.right-wrapper'),
+      {
+        on: {}
+      }
     );
   },
 })

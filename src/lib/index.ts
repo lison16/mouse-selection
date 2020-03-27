@@ -59,7 +59,7 @@ class FrameSelection {
         }
         const eventHandler = this.config.on[eventName];
         if (eventHandler) {
-          on(dom, eventName, eventHandler as any); // @TODO: 优化类型定义
+          dom?.addEventListener(eventName, eventHandler as any); // @TODO: 优化类型定义
         }
       }
     }
@@ -76,7 +76,7 @@ class FrameSelection {
         }
         const eventHandler = this.config.on[eventName];
         if (eventHandler) {
-          off(dom, eventName, eventHandler as any); // @TODO: 优化类型定义
+          dom?.removeEventListener(eventName, eventHandler as any); // @TODO: 优化类型定义
         }
       }
     }
@@ -113,26 +113,15 @@ class FrameSelection {
    */
   private _proxyInsideEvent(
     dom: DOMType,
-    eventName: EventNames | EventNames[],
+    eventName: EventNames,
     callback?: (event: any) => void,
   ) {
-    if (typeof eventName === 'string') {
-      on(dom, eventName, (event: any) => {
-        if (this._hasConfigEvent(eventName)) {
-          (this as any).config.on[eventName](event); // @TODO: 优化类型定义
-        }
-        callback && callback(event);
-      });
-    } else {
-      eventName.forEach((name) => {
-        on(dom, name, (event: any) => {
-          if (this._hasConfigEvent(name)) {
-            (this as any).config.on[name](event); // @TODO: 优化类型定义
-          }
-          callback && callback(event);
-        });
-      });
-    }
+    dom?.addEventListener(eventName, (event: any) => {
+      if (this._hasConfigEvent(eventName)) {
+        (this as any).config.on[eventName](event); // @TODO: 优化类型定义
+      }
+      callback && callback(event);
+    });
   }
   /**
    * @description 设置鼠标按下时起始坐标
@@ -149,8 +138,8 @@ class FrameSelection {
    */
   private _addMousedownListener(dom: DOMType) {
     this._proxyInsideEvent(dom, 'mousedown', (event) => {
-      on(document, 'mouseup', this._selectEnd(dom));
-      on(document, 'mousemove', this._selecting(dom));
+      document.addEventListener('mouseup', this._selectEnd(dom));
+      document.addEventListener('mousemove', this._selecting(dom));
       this.moving = true;
       // 设置所作用的DOM的定位及尺寸信息
       this.domRect = this._setDOMRect(dom);
@@ -192,14 +181,17 @@ class FrameSelection {
    */
   private _selectEnd(this: FrameSelection, dom: DOMType) {
     this._proxyInsideEvent(document, 'mouseup', (event) => {
-      off(document, 'mousemove', this._selecting);
-      off(document, 'mouseup', this._selectEnd);
+      document.removeEventListener('mousemove', this._selecting as any);
+      document.removeEventListener('mouseup', this._selectEnd as any);
       this._setRectangleElementStyle('display', 'none');
       this.moving = false;
     });
   }
-  private _setRectangleElementStyle(props: string, value: string) {
-    this.RectangleElement.style[props as any] = value;
+  private _setRectangleElementStyle(
+    props: keyof StringTypeNotReadonlyCSSStyleDeclaration,
+    value: string,
+  ) {
+    this.RectangleElement.style[props] = value;
   }
   /**
    * @description 更新矩形框选元素样式
