@@ -1,0 +1,7 @@
+{
+    "js": {
+        "allowed_file_extensions": ["js", "ts"],
+        "wrap_line_length": 120,
+        "max_preserve_newlines": 120
+    }
+}
