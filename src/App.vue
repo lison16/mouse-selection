@@ -20,16 +20,14 @@
         </div>
         <div class="wrapper right-wrapper"></div>
       </div>
-      <div v-else class="test-box test-full-page">
-        可以自定义框选矩形样式
-      </div>
+      <div v-else class="test-box test-full-page">可以自定义框选矩形样式</div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import FrameSelection from "./lib/index";
+import MouseSelection from "./lib/index";
 
 @Component({
   data() {
@@ -39,14 +37,14 @@ import FrameSelection from "./lib/index";
   }
 })
 export default class App extends Vue {
-  public wrapperFrameSelection!: FrameSelection;
+  public wrapperMouseSelection!: MouseSelection;
   public selectionPageRect!: object;
   public isInTheBoxList: boolean[] = [];
   public innerBoxRectList: DOMRect[] = [];
   public usable = "able";
   public isInnerSelection() {}
   protected mounted() {
-    this.wrapperFrameSelection = new FrameSelection(
+    this.wrapperMouseSelection = new MouseSelection(
       document.querySelector(".left-wrapper"),
       {
         onMousedown: () => {
@@ -56,7 +54,7 @@ export default class App extends Vue {
         },
         onMousemove: () => {
           this.isInTheBoxList = this.innerBoxRectList.map(rect => {
-            return this.wrapperFrameSelection.isInTheSelection(rect);
+            return this.wrapperMouseSelection.isInTheSelection(rect);
           });
         },
         onMouseup: () => {
@@ -65,7 +63,7 @@ export default class App extends Vue {
         disabled: () => this.usable === "disabled"
       }
     );
-    const rightWrapperFrameSelection = new FrameSelection(
+    const rightWrapperMouseSelection = new MouseSelection(
       document.querySelector(".right-wrapper"),
       {
         className: "right-wrapper-selection"

@@ -8,24 +8,42 @@
 npm install mouse-selection
 ```
 
-### Compiles and hot-reloads for development
+```javascript
+import MouseSelection from "mouse-selection";
 
+new MouseSelection(
+    document.querySelector(".left-wrapper"), // 需要作用的DOM，如果不传则为document
+    {
+    onMousedown: () => {
+        this.innerBoxRectList = Array.from(
+        document.querySelectorAll(".inner-box")
+        ).map(item => item.getBoundingClientRect());
+    },
+    onMousemove: () => {
+        this.isInTheBoxList = this.innerBoxRectList.map(rect => {
+        return this.wrapperMouseSelection.isInTheSelection(rect);
+        });
+    },
+    onMouseup: () => {
+        this.isInTheBoxList = [];
+    },
+    disabled: () => this.usable === "disabled"
+});
+
+new MouseSelection({
+    onMousedown: (event) => {
+        this.innerBoxRectList = Array.from(
+        document.querySelectorAll(".inner-box")
+        ).map(item => item.getBoundingClientRect());
+    },
+    onMousemove: (event) => {
+        this.isInTheBoxList = this.innerBoxRectList.map(rect => {
+        return this.wrapperMouseSelection.isInTheSelection(rect);
+        });
+    },
+    onMouseup: (event) => {
+        this.isInTheBoxList = [];
+    },
+    zIndex: 9999
+});
 ```
-npm run serve
-```
-
-### Compiles and minifies for production
-
-```
-npm run build
-```
-
-### Lints and fixes files
-
-```
-npm run lint
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).

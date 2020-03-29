@@ -7,7 +7,7 @@ interface SelectionRects {
 
 type RefitedMouseEvent = MouseEvent & SelectionRects;
 
-interface FrameSelectionOptions {
+interface MouseSelectionOptions {
   className?: string;
   zIndex?: number;
   onMousemove?: (event: RefitedMouseEvent) => void;

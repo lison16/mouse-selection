@@ -1,7 +1,7 @@
 import { isDOM } from '../util';
 
 function isDOMType(
-  value: DOMType | FrameSelectionOptions | undefined,
+  value: DOMType | MouseSelectionOptions | undefined,
 ): value is DOMType {
   return isDOM(value);
 }
@@ -22,7 +22,7 @@ const getInitCustomRect = () => ({
   bottom: 0,
 });
 
-class FrameSelection {
+class MouseSelection {
   // 矩形框选元素
   public rectangleElement!: HTMLElement;
   public targetDom!: DOMType;
@@ -38,8 +38,8 @@ class FrameSelection {
   private readonly RectangleElementClassName =
     'frame-selection-rectangle-element';
   constructor(
-    domOrConfig?: DOMType | FrameSelectionOptions,
-    public config?: FrameSelectionOptions,
+    domOrConfig?: DOMType | MouseSelectionOptions,
+    public config?: MouseSelectionOptions,
   ) {
     let dom: DOMType = document;
     if (isDOMType(domOrConfig)) {
@@ -185,7 +185,9 @@ class FrameSelection {
       return;
     }
     // 如果设置了disabled钩子函数，并且返回值为true，不操作
-    if (this.config?.disabled && this.config?.disabled()) { return; }
+    if (this.config?.disabled && this.config?.disabled()) {
+      return;
+    }
     this.rectangleElement = this._createRectangleElement();
     this.moving = true;
     // 设置所作用的DOM的定位及尺寸信息
@@ -273,4 +275,4 @@ class FrameSelection {
   }
 }
 
-export default FrameSelection;
+export default MouseSelection;
