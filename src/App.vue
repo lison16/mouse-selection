@@ -20,7 +20,9 @@
         </div>
         <div class="wrapper right-wrapper"></div>
       </div>
-      <div v-else class="test-box test-full-page"></div>
+      <div v-else class="test-box test-full-page">
+        可以自定义框选矩形样式
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +124,6 @@ body,
   }
 }
 .right-wrapper-selection {
-  border-style: dashed;
+  border-style: dashed !important;
 }
 </style>
