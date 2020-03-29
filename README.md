@@ -4,6 +4,8 @@
 
 ![npm](https://img.shields.io/npm/v/mouse-selection.svg)
 
+在线体验: https://lison16.github.io/mouse-selection/
+
 ## Project setup
 
 ```
