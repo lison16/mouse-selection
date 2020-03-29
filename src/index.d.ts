@@ -8,12 +8,12 @@ interface SelectionRects {
 type RefitedMouseEvent = MouseEvent & SelectionRects;
 
 interface FrameSelectionOptions {
+  className?: string;
+  zIndex?: number;
   onMousemove?: (event: RefitedMouseEvent) => void;
   onMousedown?: (event: MouseEvent) => void;
   onMouseup?: (event: MouseEvent) => void;
-  userSelectNode?: boolean;
-  className?: string;
-  zIndex?: number;
+  disabled?: () => boolean;
 }
 
 type EventNames = keyof GlobalEventHandlersEventMap;

@@ -1,55 +1,55 @@
 {
-  "name": "mouse-selection",
-  "version": "0.1.3",
-  "private": false,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "dist": "vue-cli-service build --target lib --name mouse-selection src/lib/index.ts"
-  },
-  "description": "A mouse frame selection plugin using JavaScript",
-  "author": "Lison<lison16new@163.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/lison16/mouse-selection/issues"
-  },
-  "homepage": "https://github.com/lison16/mouse-selection#readme",
-  "keywords": [
-    "javascript",
-    "frame",
-    "select",
-    "selection",
-    "mouse"
-  ],
-  "dependencies": {
-    "core-js": "^3.6.4",
-    "vue": "^2.6.11",
-    "vue-class-component": "^7.2.2",
-    "vue-property-decorator": "^8.3.0"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.2.0",
-    "@vue/cli-plugin-typescript": "^4.2.0",
-    "@vue/cli-service": "^4.2.0",
-    "less": "^3.0.4",
-    "less-loader": "^5.0.0",
-    "lint-staged": "^9.5.0",
-    "typescript": "~3.7.5",
-    "vue-template-compiler": "^2.6.11"
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
-  },
-  "main": "dist/mouse-selection.umd.min.js",
-  "lint-staged": {
-    "*.ts": [
-      "vue-cli-service lint",
-      "git add"
+    "name": "mouse-selection",
+    "version": "0.1.4",
+    "private": false,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint",
+        "dist": "vue-cli-service build --target lib --name mouse-selection src/lib/index.ts"
+    },
+    "description": "A mouse frame selection plugin using JavaScript",
+    "author": "Lison<lison16new@163.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/lison16/mouse-selection/issues"
+    },
+    "homepage": "https://github.com/lison16/mouse-selection#readme",
+    "keywords": [
+        "javascript",
+        "frame",
+        "select",
+        "selection",
+        "mouse"
     ],
-    "*.vue": [
-      "vue-cli-service lint",
-      "git add"
-    ]
-  }
+    "dependencies": {
+        "core-js": "^3.6.4",
+        "vue": "^2.6.11",
+        "vue-class-component": "^7.2.2",
+        "vue-property-decorator": "^8.3.0"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "^4.2.0",
+        "@vue/cli-plugin-typescript": "^4.2.0",
+        "@vue/cli-service": "^4.2.0",
+        "less": "^3.0.4",
+        "less-loader": "^5.0.0",
+        "lint-staged": "^9.5.0",
+        "typescript": "~3.7.5",
+        "vue-template-compiler": "^2.6.11"
+    },
+    "gitHooks": {
+        "pre-commit": "lint-staged"
+    },
+    "main": "dist/mouse-selection.umd.min.js",
+    "lint-staged": {
+        "*.ts": [
+            "vue-cli-service lint",
+            "git add"
+        ],
+        "*.vue": [
+            "vue-cli-service lint",
+            "git add"
+        ]
+    }
 }

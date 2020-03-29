@@ -180,7 +180,12 @@ class FrameSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
-    if (event.button !== 0) { return; }
+    // 如果不是鼠标左键按下不操作
+    if (event.button !== 0) {
+      return;
+    }
+    // 如果设置了disabled钩子函数，并且返回值为true，不操作
+    if (this.config?.disabled && this.config?.disabled()) { return; }
     this.rectangleElement = this._createRectangleElement();
     this.moving = true;
     // 设置所作用的DOM的定位及尺寸信息
