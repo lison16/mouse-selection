@@ -11,7 +11,7 @@ function isDocument(value: DOMType): value is HTMLDocument {
 }
 
 const rectangleElementInlineStyle =
-  'position: fixed;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2)';
+  'position: fixed;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
 
 const getInitCustomRect = () => ({
   left: 0,
@@ -133,7 +133,9 @@ class FrameSelection {
     ele.className =
       this.RectangleElementClassName +
       (customClassName ? ` ${customClassName}` : '');
-    ele.style.cssText = rectangleElementInlineStyle;
+    ele.style.cssText =
+      rectangleElementInlineStyle +
+      `z-index: ${this.config?.zIndex || 99999999}`;
     document.body.appendChild(ele);
     return ele;
   }

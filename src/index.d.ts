@@ -13,6 +13,7 @@ interface FrameSelectionOptions {
   onMouseup?: (event: MouseEvent) => void;
   userSelectNode?: boolean;
   className?: string;
+  zIndex?: number;
 }
 
 type EventNames = keyof GlobalEventHandlersEventMap;
