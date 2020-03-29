@@ -18,31 +18,3 @@ export const isDOM = (object: any) => {
     );
   }
 };
-
-/**
- * @description 绑定事件
- * @param dom 要绑定事件的dom
- * @param eventName 事件名
- * @param callback 绑定的方法
- */
-export const on = (
-  dom: DOMType,
-  eventName: EventNames,
-  callback: any,
-): void => {
-  dom?.addEventListener(eventName, callback);
-};
-
-/**
- * @description 解绑事件
- * @param dom 要解绑事件的dom
- * @param eventName 事件名
- * @param callback 绑定的方法
- */
-export const off = (
-  dom: DOMType,
-  eventName: EventNames,
-  callback: any,
-): void => {
-  dom?.removeEventListener(eventName, callback);
-};

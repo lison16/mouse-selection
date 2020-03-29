@@ -1,5 +1,4 @@
-import { isDOM, on, off } from '../util';
-import './index.less';
+import { isDOM } from '../util';
 
 function isDOMType(
   value: DOMType | FrameSelectionOptions | undefined,
@@ -11,7 +10,8 @@ function isDocument(value: DOMType): value is HTMLDocument {
   return value?.nodeName === '#document';
 }
 
-const rectangleElementInlineStyle = 'position: fixed;pointer-events: none';
+const rectangleElementInlineStyle =
+  'position: fixed;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2)';
 
 const getInitCustomRect = () => ({
   left: 0,
