@@ -1,25 +1,23 @@
 type DOMType = Element | HTMLElement | HTMLDocument | null;
 
-// type EventListenerHanlder<T extends keyof GlobalEventHandlersEventMap> = (
-//   this: EventSource,
-//   event: GlobalEventHandlersEventMap[T],
-// ) => void;
+interface SelectionRects {
+  selectionPageRect?: CustomRect;
+  selectionDOMRect?: CustomRect;
+}
 
-type EventMapType = {
-  [eventName in keyof GlobalEventHandlersEventMap]?: (
-    this: EventSource,
-    event: GlobalEventHandlersEventMap[eventName]
-  ) => void;
-};
+type RefitedMouseEvent = MouseEvent & SelectionRects;
 
 interface FrameSelectionOptions {
-  on?: EventMapType;
+  onMousemove: (event: RefitedMouseEvent) => void;
+  onMousedown: (event: MouseEvent) => void;
+  onMouseup: (event: MouseEvent) => void;
   userSelectNode?: boolean;
+  className?: string;
 }
 
 type EventNames = keyof GlobalEventHandlersEventMap;
 
-interface DocumentPositionSizeRect {
+interface CustomRect {
   left: number;
   top: number;
   width: number;
@@ -48,5 +46,12 @@ type NotReadonlyCSSStyleDeclaration = ReadonlyKeys<CSSStyleDeclaration>;
 
 type StringTypeNotReadonlyCSSStyleDeclaration = Exclude<
   NotReadonlyCSSStyleDeclaration,
-  number | Function
+  number | (() => any)
 >;
+
+interface PositionSizeMap {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}

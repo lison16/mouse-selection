@@ -3,7 +3,13 @@
     <div class="box">
       <div v-if="mode === 'wrapper'" class="test-box test-inner-wrapper">
         <div class="wrapper left-wrapper">
-          <div class="inner-box" v-for="i in 8" :key="`left_${i}`"></div>
+          <div
+            class="inner-box"
+            :class="{'selected-box': isInTheBoxList[i - 1]}"
+            v-for="i in 8"
+            :id="`left_inner_box_${i}`"
+            :key="`left_${i}`"
+          ></div>
         </div>
         <div class="wrapper right-wrapper"></div>
       </div>
@@ -19,47 +25,43 @@ import FrameSelection from './lib/index';
 @Component({
   data() {
     return {
-      mode: 'wrapper'
+      mode: 'wrapper',
     };
   },
-  mounted() {
-    // const documentFrameSelection = new FrameSelection(document, {
-    //   on: {
-    //     mousedown: (event) => {
-    //       // console.log(event);
-    //     },
-    //     mousemove: (event) => {
-    //       // console.log(event);
-    //     },
-    //     mouseup: (event) => {
-    //       // console.log(event);
-    //     },
-    //     click: (event) => {
-    //       // console.log('click');
-    //     }
-    //   }
-    // });
-    // console.log(documentFrameSelection);
-    const wrapperFrameSelection = new FrameSelection(
+})
+export default class App extends Vue {
+  public wrapperFrameSelection!: FrameSelection;
+  public selectionPageRect!: object;
+  public isInTheBoxList: boolean[] = [];
+  public innerBoxRectList: DOMRect[] = [];
+  public isInnerSelection() {}
+  protected mounted() {
+    this.wrapperFrameSelection = new FrameSelection(
       document.querySelector('.left-wrapper'),
       {
-        on: {
-          mousemove(event) {
-            // console.log(event.pageX);
-          },
-          click(event) {}
-        }
-      }
+        onMousedown: () => {
+          this.innerBoxRectList = Array.from(
+            document.querySelectorAll('.inner-box'),
+          ).map((item) => item.getBoundingClientRect());
+        },
+        onMousemove: () => {
+          this.isInTheBoxList = this.innerBoxRectList.map((rect) => {
+            return this.wrapperFrameSelection.isInTheSelection(rect);
+          });
+        },
+        onMouseup: () => {
+          this.isInTheBoxList = [];
+        },
+      },
     );
     const rightWrapperFrameSelection = new FrameSelection(
       document.querySelector('.right-wrapper'),
       {
-        on: {}
-      }
+        className: 'right-wrapper-selection',
+      },
     );
-  },
-})
-export default class App extends Vue {}
+  }
+}
 </script>
 
 <style lang="less">
@@ -89,10 +91,13 @@ body,
         .inner-box {
           width: 100px;
           height: 100px;
-          background: pink;
+          background: rgba(255, 192, 203, 0.3);
           display: inline-block;
           margin-left: 20px;
           margin-top: 20px;
+          &.selected-box {
+            background: rgba(255, 192, 203, 1);
+          }
         }
         &.left-wrapper {
           left: 10px;
@@ -103,5 +108,8 @@ body,
       }
     }
   }
+}
+.right-wrapper-selection {
+  border-style: dashed;
 }
 </style>

@@ -13,17 +13,22 @@ function isDocument(value: DOMType): value is HTMLDocument {
 
 const rectangleElementInlineStyle = 'position: fixed;pointer-events: none';
 
+const getInitCustomRect = () => ({
+  left: 0,
+  top: 0,
+  width: 0,
+  height: 0,
+  right: 0,
+  bottom: 0,
+});
+
 class FrameSelection {
   // 矩形框选元素
-  public RectangleElement!: HTMLElement;
-  public domRect: DocumentPositionSizeRect | DOMRect = {
-    left: 0,
-    top: 0,
-    width: 0,
-    height: 0,
-    right: 0,
-    bottom: 0,
-  };
+  public rectangleElement!: HTMLElement;
+  public targetDom!: DOMType;
+  public domRect: CustomRect | DOMRect = getInitCustomRect();
+  public selectionPagePositionRect: CustomRect = getInitCustomRect();
+  public selectionDOMPositionRect: CustomRect = getInitCustomRect();
   // 用于标记鼠标点下时的坐标
   private startX: number = 0;
   private startY: number = 0;
@@ -32,8 +37,6 @@ class FrameSelection {
   // 矩形框选元素类名
   private readonly RectangleElementClassName =
     'frame-selection-rectangle-element';
-  // 在内部绑定的事件列表，通过config.on传进来的非以下事件会直接绑定到传进来的dom上
-  private readonly ProxyEventList = ['mousedown', 'mousemove', 'mouseup'];
   constructor(
     domOrConfig?: DOMType | FrameSelectionOptions,
     public config?: FrameSelectionOptions,
@@ -42,44 +45,76 @@ class FrameSelection {
     if (isDOMType(domOrConfig)) {
       dom = domOrConfig;
     }
-    this.RectangleElement = this._createRectangleElement();
-    this._addEvent(dom);
+    this.targetDom = dom;
     this._addMousedownListener(dom);
   }
   /**
-   * @description 初始化事件
-   * @param dom 要作用于的DOM元素
+   * @description 获取框选元素以页面为准的偏移和尺寸信息
+   * @param left 距离页面左侧距离
+   * @param top 距离页面顶部距离
+   * @param width 宽度
+   * @param height 高度
    */
-  private _addEvent(dom: DOMType) {
-    this._removeEvent(dom);
-    if (this.config && typeof this.config.on === 'object') {
-      for (const eventName of Object.keys(this.config.on) as EventNames[]) {
-        if (this.ProxyEventList.includes(eventName)) {
-          continue;
-        }
-        const eventHandler = this.config.on[eventName];
-        if (eventHandler) {
-          dom?.addEventListener(eventName, eventHandler as any); // @TODO: 优化类型定义
-        }
-      }
-    }
+  public getSelectionPagePosition(
+    currentX: number,
+    currentY: number,
+  ): CustomRect {
+    currentX = currentX - 2;
+    currentY = currentY - 2;
+    const domRect = this.domRect;
+    const left = Math.max(domRect.left, Math.min(this.startX, currentX));
+    const top = Math.max(domRect.top, Math.min(this.startY, currentY));
+    const width =
+      Math.max(this.startX, Math.min(currentX, domRect.right - 2)) - left;
+    const height =
+      Math.max(this.startY, Math.min(currentY, domRect.bottom - 2)) - top;
+    return {
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+    };
   }
   /**
-   * @description 解绑事件
-   * @param dom 要作用于的DOM元素
+   * @description 获取矩形框选元素以传入的DOM为准的偏移和尺寸信息
+   * @param selectionPagePositionRect getSelectionPagePosition返回的值
    */
-  private _removeEvent(dom: DOMType): void {
-    if (this.config && typeof this.config.on === 'object') {
-      for (const eventName of Object.keys(this.config.on) as EventNames[]) {
-        if (this.ProxyEventList.includes(eventName)) {
-          continue;
-        }
-        const eventHandler = this.config.on[eventName];
-        if (eventHandler) {
-          dom?.removeEventListener(eventName, eventHandler as any); // @TODO: 优化类型定义
-        }
-      }
-    }
+  public getSelectionDOMPosition(
+    selectionPagePositionRect: CustomRect,
+  ): CustomRect {
+    const {
+      left,
+      top,
+      width,
+      height,
+      right,
+      bottom,
+    } = selectionPagePositionRect;
+    const { left: DOMLeft, top: DOMTop } = this.domRect;
+    return {
+      left: left - DOMLeft,
+      top: top - DOMTop,
+      width,
+      height,
+      right: right - DOMLeft,
+      bottom: bottom - DOMTop,
+    };
+  }
+  /**
+   * @description 工具方法，传入一个包含left/top/width/height字段的对象，返回这个参数描述的矩形是否与框选矩形相交
+   * @param positionSizeMap {left,top,width,height} 要判断的
+   * @param isBasisOnPage 传入的left和top值是否是基于页面计算的，否则是基于初始化传入的DOM计算的
+   */
+  public isInTheSelection(
+    { left, top, width, height }: PositionSizeMap,
+    isBasisOnPage: boolean = true,
+  ) {
+    const { left: x, top: y, width: w, height: h } = isBasisOnPage
+      ? this.selectionPagePositionRect
+      : this.selectionDOMPositionRect;
+    return left + width > x && x + w > left && top + height > y && y + h > top;
   }
   /**
    * @description 在document.body中创建矩形框选元素
@@ -90,38 +125,17 @@ class FrameSelection {
     let ele = document.querySelector(
       `.${this.RectangleElementClassName}`,
     ) as HTMLElement;
-    if (!ele) {
-      ele = document.createElement('div');
-      ele.className = this.RectangleElementClassName;
-      ele.style.cssText = rectangleElementInlineStyle;
-      document.body.appendChild(ele);
+    if (ele) {
+      document.body.removeChild(ele);
     }
+    ele = document.createElement('div');
+    const customClassName = this.config?.className;
+    ele.className =
+      this.RectangleElementClassName +
+      (customClassName ? ` ${customClassName}` : '');
+    ele.style.cssText = rectangleElementInlineStyle;
+    document.body.appendChild(ele);
     return ele;
-  }
-  /**
-   * @description 判断是否配置了指定事件
-   * @param name 事件名
-   */
-  private _hasConfigEvent(name: EventNames): boolean {
-    return !!(this.config && this.config.on && this.config.on[name]);
-  }
-  /**
-   * @description 代理内部处理事件
-   * @param dom 要绑定事件的元素dom
-   * @param eventName 事件名或多个事件名数组
-   * @param callback 绑定的函数
-   */
-  private _proxyInsideEvent(
-    dom: DOMType,
-    eventName: EventNames,
-    callback?: (event: any) => void,
-  ) {
-    dom?.addEventListener(eventName, (event: any) => {
-      if (this._hasConfigEvent(eventName)) {
-        (this as any).config.on[eventName](event); // @TODO: 优化类型定义
-      }
-      callback && callback(event);
-    });
   }
   /**
    * @description 设置鼠标按下时起始坐标
@@ -137,21 +151,16 @@ class FrameSelection {
    * @param dom 要绑定事件的dom
    */
   private _addMousedownListener(dom: DOMType) {
-    this._proxyInsideEvent(dom, 'mousedown', (event) => {
-      document.addEventListener('mouseup', this._selectEnd(dom));
-      document.addEventListener('mousemove', this._selecting(dom));
-      this.moving = true;
-      // 设置所作用的DOM的定位及尺寸信息
-      this.domRect = this._setDOMRect(dom);
-      // 显示矩形框选元素
-      this._setRectangleElementStyle('display', 'block');
-      // 设置起始点坐标
-      this._setStartPosition(event.pageX - 2, event.pageY - 2);
-      // 更新矩形框选元素
-      this._updateRectangleElementStyle(dom, event.pageX, event.pageY);
-    });
+    dom!.addEventListener(
+      'mousedown',
+      this._selectStart as (event: Event) => void,
+    );
   }
-  private _setDOMRect(dom: DOMType): DOMRect | DocumentPositionSizeRect {
+  /**
+   * @description 获取DOM的Rect信息，如果是document，只返回6个值
+   * @param dom 要获取Rect信息的dom
+   */
+  private _getDOMRect(dom: DOMType): DOMRect | CustomRect {
     const domRect = isDocument(dom)
       ? {
           left: 0,
@@ -165,53 +174,90 @@ class FrameSelection {
     return domRect;
   }
   /**
-   * @description 绑定mousemove事件
-   * @param dom 要绑定事件的dom
+   * @description mousedown事件回调
+   * @param event 鼠标事件对象
    */
-  private _selecting(this: FrameSelection, dom: DOMType) {
-    this._proxyInsideEvent(document, 'mousemove', (event) => {
-      if (this.moving) {
-        this._updateRectangleElementStyle(dom, event.pageX, event.pageY);
-      }
-    });
+  private _selectStart = (event: MouseEvent) => {
+    this.rectangleElement = this._createRectangleElement();
+    this.moving = true;
+    // 设置所作用的DOM的定位及尺寸信息
+    this.domRect = this._getDOMRect(this.targetDom);
+    // 显示矩形框选元素
+    this._setRectangleElementStyle('display', 'block');
+    // 设置起始点坐标
+    this._setStartPosition(event.pageX - 2, event.pageY - 2);
+    // 更新矩形框选元素
+    this.selectionPagePositionRect = this.getSelectionPagePosition(
+      event.pageX,
+      event.pageY,
+    );
+    this._updateRectangleElementStyle(this.selectionPagePositionRect);
+    const callback: ((event: MouseEvent) => void) | undefined = this.config
+      ?.onMousedown;
+    callback && callback(event);
+    document.addEventListener('mouseup', this._selectEnd);
+    document.addEventListener('mousemove', this._selecting);
   }
   /**
-   * @description 绑定mouseup事件
-   * @param dom 要绑定事件的dom
+   * @description mousemove事件回调
+   * @param event 鼠标事件对象
    */
-  private _selectEnd(this: FrameSelection, dom: DOMType) {
-    this._proxyInsideEvent(document, 'mouseup', (event) => {
-      document.removeEventListener('mousemove', this._selecting as any);
-      document.removeEventListener('mouseup', this._selectEnd as any);
-      this._setRectangleElementStyle('display', 'none');
-      this.moving = false;
-    });
+  private _selecting = (event: MouseEvent) => {
+    if (!this.moving) {
+      return;
+    }
+
+    this.selectionPagePositionRect = this.getSelectionPagePosition(
+      event.pageX,
+      event.pageY,
+    );
+    const refitedMouseEvent: RefitedMouseEvent = event;
+    refitedMouseEvent.selectionPageRect = JSON.parse(
+      JSON.stringify(this.selectionPagePositionRect),
+    );
+    this.selectionDOMPositionRect = this.getSelectionDOMPosition(
+      this.selectionPagePositionRect,
+    );
+    refitedMouseEvent.selectionDOMRect = JSON.parse(
+      JSON.stringify(this.selectionDOMPositionRect),
+    );
+    this._updateRectangleElementStyle(this.selectionPagePositionRect);
+
+    const callback: ((event: RefitedMouseEvent) => void) | undefined = this
+      .config?.onMousemove;
+    callback && callback(refitedMouseEvent);
   }
+  /**
+   * @description mouseup事件回调
+   * @param event 鼠标事件对象
+   */
+  private _selectEnd = (event: MouseEvent) => {
+    document.removeEventListener('mousemove', this._selecting);
+    document.removeEventListener('mouseup', this._selectEnd);
+    this._setRectangleElementStyle('display', 'none');
+    this.moving = false;
+    const callback: ((event: MouseEvent) => void) | undefined = this.config
+      ?.onMouseup;
+    callback && callback(event);
+  }
+  /**
+   * @description 设置矩形框选元素样式
+   * @param props CSS属性名
+   * @param value CSS属性值
+   */
   private _setRectangleElementStyle(
-    props: keyof StringTypeNotReadonlyCSSStyleDeclaration,
+    props: StringTypeNotReadonlyCSSStyleDeclaration,
     value: string,
   ) {
-    this.RectangleElement.style[props] = value;
+    this.rectangleElement.style[props] = value;
   }
   /**
    * @description 更新矩形框选元素样式
    * @param currentX 当前鼠标event.pageX值
    * @param currentY 当前鼠标event.pageY值
    */
-  private _updateRectangleElementStyle(
-    dom: DOMType,
-    currentX: number,
-    currentY: number,
-  ) {
-    currentX = currentX - 2;
-    currentY = currentY - 2;
-    const domRect = this.domRect;
-    const left = Math.max(domRect.left, Math.min(this.startX, currentX));
-    const top = Math.max(domRect.top, Math.min(this.startY, currentY));
-    const width =
-      Math.max(this.startX, Math.min(currentX, domRect.right - 2)) - left;
-    const height =
-      Math.max(this.startY, Math.min(currentY, domRect.bottom - 2)) - top;
+  private _updateRectangleElementStyle(rect: CustomRect) {
+    const { left, top, width, height } = rect;
     this._setRectangleElementStyle('left', `${left}px`);
     this._setRectangleElementStyle('top', `${top}px`);
     this._setRectangleElementStyle('width', `${width}px`);
