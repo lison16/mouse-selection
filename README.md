@@ -1,5 +1,7 @@
 # mouse-selection
 
+![image](https://github.com/lison16/mouse-selection/blob/master/demo.gif)
+
 ## Project setup
 
 ```
