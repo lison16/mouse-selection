@@ -1,6 +1,8 @@
 # mouse-selection
 
-![image](https://github.com/lison16/mouse-selection/blob/master/demo.gif)
+[](https://img.shields.io/github/release/lison16/mouse-selection.svg)
+
+![npm](https://img.shields.io/npm/v/mouse-selection.svg)
 
 ## Project setup
 
