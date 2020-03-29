@@ -8,6 +8,20 @@
     "lint": "vue-cli-service lint",
     "dist": "vue-cli-service build --target lib --name frame-selection src/lib/index.ts"
   },
+  "description": "A mouse frame selection plugin using JavaScript",
+  "author": "Lison<lison16new@163.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lison16/frame-selection/issues"
+  },
+  "homepage": "https://github.com/lison16/frame-selection#readme",
+  "keywords": [
+    "javascript",
+    "frame",
+    "select",
+    "selection",
+    "mouse"
+  ],
   "dependencies": {
     "core-js": "^3.6.4",
     "vue": "^2.6.11",
