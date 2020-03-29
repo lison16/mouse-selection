@@ -48,6 +48,7 @@ new MouseSelection({
     onMouseup: (event) => {
         this.isInTheBoxList = [];
     },
-    zIndex: 9999
+    zIndex: 9999,
+    className: "right-wrapper-selection"
 });
 ```
