@@ -180,6 +180,7 @@ class FrameSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
+    if (event.button !== 0) { return; }
     this.rectangleElement = this._createRectangleElement();
     this.moving = true;
     // 设置所作用的DOM的定位及尺寸信息
