@@ -8,9 +8,9 @@ interface SelectionRects {
 type RefitedMouseEvent = MouseEvent & SelectionRects;
 
 interface FrameSelectionOptions {
-  onMousemove: (event: RefitedMouseEvent) => void;
-  onMousedown: (event: MouseEvent) => void;
-  onMouseup: (event: MouseEvent) => void;
+  onMousemove?: (event: RefitedMouseEvent) => void;
+  onMousedown?: (event: MouseEvent) => void;
+  onMouseup?: (event: MouseEvent) => void;
   userSelectNode?: boolean;
   className?: string;
 }
