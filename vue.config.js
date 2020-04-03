@@ -4,7 +4,7 @@ const resolve = dir => {
     return path.join(__dirname, dir)
 }
 module.exports = {
-    publicPath: 'https://lison16.github.io/mouse-selection/',
+    publicPath: process.env.NODE_ENV === 'production' ? 'https://lison16.github.io/mouse-selection/' : '/',
     lintOnSave: true,
     chainWebpack: config => {
         config.resolve.alias
