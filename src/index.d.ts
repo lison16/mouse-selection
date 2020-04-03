@@ -1,4 +1,4 @@
-type DOMType = Element | HTMLElement | HTMLDocument | null;
+type DOMType = HTMLElement | HTMLDocument | null;
 
 interface SelectionRects {
   selectionPageRect?: CustomRect;

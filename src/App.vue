@@ -13,7 +13,7 @@
           <div
             class="inner-box"
             :class="{ 'selected-box': isInTheBoxList[i - 1] }"
-            v-for="i in 8"
+            v-for="i in 50"
             :id="`left_inner_box_${i}`"
             :key="`left_${i}`"
           ></div>
@@ -29,6 +29,13 @@
 import { Component, Vue } from "vue-property-decorator";
 import MouseSelection from "./lib/index";
 
+interface CustomRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 @Component({
   data() {
     return {
@@ -40,7 +47,7 @@ export default class App extends Vue {
   public wrapperMouseSelection!: MouseSelection;
   public selectionPageRect!: object;
   public isInTheBoxList: boolean[] = [];
-  public innerBoxRectList: DOMRect[] = [];
+  public innerBoxRectList: CustomRect[] = [];
   public usable = "able";
   public isInnerSelection() {}
   protected mounted() {
@@ -48,9 +55,16 @@ export default class App extends Vue {
       document.querySelector(".left-wrapper"),
       {
         onMousedown: () => {
-          this.innerBoxRectList = Array.from(
+          this.innerBoxRectList = (Array.from(
             document.querySelectorAll(".inner-box")
-          ).map(item => item.getBoundingClientRect());
+          ) as HTMLElement[]).map((node: HTMLElement) => {
+            return {
+              left: node.offsetLeft,
+              top: node.offsetTop,
+              width: node.offsetWidth,
+              height: node.offsetHeight
+            }
+          });
         },
         onMousemove: () => {
           this.isInTheBoxList = this.innerBoxRectList.map(rect => {
@@ -63,9 +77,13 @@ export default class App extends Vue {
         disabled: () => this.usable === "disabled"
       }
     );
-    const rightWrapperMouseSelection = new MouseSelection(
+    new MouseSelection(
       document.querySelector(".right-wrapper"),
       {
+        className: "right-wrapper-selection"
+      }
+    );
+    const documentSelection = new MouseSelection({
         className: "right-wrapper-selection"
       }
     );
@@ -113,6 +131,7 @@ body,
         }
         &.left-wrapper {
           left: 10px;
+          overflow: scroll;
         }
         &.right-wrapper {
           right: 10px;
