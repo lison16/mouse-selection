@@ -36,8 +36,6 @@ class MouseSelection {
   // 矩形框选元素类名
   private readonly RectangleElementClassName =
     'frame-selection-rectangle-element';
-  // 作用DOM是否是document
-  private targetDOMIsDocument: boolean = true;
   // 用于计算滚动DOM，如果targetDom是document，则为document.body
   private wrapDOM: HTMLElement;
   constructor(
@@ -48,7 +46,6 @@ class MouseSelection {
     if (isDOMType(domOrConfig)) {
       dom = domOrConfig;
     }
-    this.targetDOMIsDocument = isDocument(dom);
     this.targetDom = dom;
     if (isDocument(this.targetDom)) {
       this.wrapDOM = document.body;
