@@ -8,28 +8,43 @@
       <label for="able">可用</label>
     </div>
     <div class="box">
-      <div v-if="mode === 'wrapper'" class="test-box test-inner-wrapper">
-        <div class="wrapper left-wrapper">
+      <div
+        v-if="mode === 'wrapper'"
+        class="test-box test-inner-wrapper"
+      >
+        <div
+          class="wrapper left-wrapper"
+          :class="{ 'selected-wrapper': isInTheBoxWrapList[0] }"
+        >
           <div
             class="inner-box"
             :class="{ 'selected-box': isInTheBoxList[i - 1] }"
-            v-for="i in 8"
+            v-for="i in 50"
             :id="`left_inner_box_${i}`"
             :key="`left_${i}`"
           ></div>
         </div>
-        <div class="wrapper right-wrapper"></div>
+        <div
+          class="wrapper right-wrapper"
+          :class="{ 'selected-wrapper': isInTheBoxWrapList[1] }"
+        ></div>
       </div>
-      <div v-else class="test-box test-full-page">
-        可以自定义框选矩形样式
-      </div>
+      <div v-else class="test-box test-full-page">可以自定义框选矩形样式</div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import FrameSelection from "./lib/index";
+import MouseSelection from "./lib/index";
+// import MouseSelection from '../dist/index'
+
+interface CustomRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
 
 @Component({
   data() {
@@ -39,24 +54,32 @@ import FrameSelection from "./lib/index";
   }
 })
 export default class App extends Vue {
-  public wrapperFrameSelection!: FrameSelection;
+  public wrapperMouseSelection!: MouseSelection;
   public selectionPageRect!: object;
   public isInTheBoxList: boolean[] = [];
-  public innerBoxRectList: DOMRect[] = [];
+  public isInTheBoxWrapList: boolean[] = [];
+  public innerBoxRectList: CustomRect[] = [];
   public usable = "able";
   public isInnerSelection() {}
   protected mounted() {
-    this.wrapperFrameSelection = new FrameSelection(
+    this.wrapperMouseSelection = new MouseSelection(
       document.querySelector(".left-wrapper"),
       {
         onMousedown: () => {
-          this.innerBoxRectList = Array.from(
+          this.innerBoxRectList = (Array.from(
             document.querySelectorAll(".inner-box")
-          ).map(item => item.getBoundingClientRect());
+          ) as HTMLElement[]).map((node: HTMLElement) => {
+            return {
+              left: node.offsetLeft,
+              top: node.offsetTop,
+              width: node.offsetWidth,
+              height: node.offsetHeight
+            }
+          });
         },
         onMousemove: () => {
           this.isInTheBoxList = this.innerBoxRectList.map(rect => {
-            return this.wrapperFrameSelection.isInTheSelection(rect);
+            return this.wrapperMouseSelection.isInTheSelection(rect);
           });
         },
         onMouseup: () => {
@@ -65,10 +88,28 @@ export default class App extends Vue {
         disabled: () => this.usable === "disabled"
       }
     );
-    const rightWrapperFrameSelection = new FrameSelection(
+    new MouseSelection(
       document.querySelector(".right-wrapper"),
       {
         className: "right-wrapper-selection"
+      }
+    );
+    const documentSelection = new MouseSelection(document, {
+        onMousedown: () => {
+          this.innerBoxRectList = (Array.from(
+            document.querySelectorAll(".wrapper")
+          ) as HTMLElement[]).map((node: HTMLElement) => {
+            return node.getBoundingClientRect()
+          });
+        },
+        onMousemove: (event) => {
+          this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
+            return documentSelection.isInTheSelection(rect);
+          });
+        },
+        onMouseup: () => {
+          this.isInTheBoxWrapList = [];
+        },
       }
     );
   }
@@ -102,6 +143,9 @@ body,
         position: absolute;
         top: 10px;
         background: rgba(255, 192, 203, 0.3);
+        &.selected-wrapper{
+          background: rgba(255, 192, 203, 0.5);
+        }
         .inner-box {
           width: 100px;
           height: 100px;
@@ -115,6 +159,7 @@ body,
         }
         &.left-wrapper {
           left: 10px;
+          overflow: scroll;
         }
         &.right-wrapper {
           right: 10px;

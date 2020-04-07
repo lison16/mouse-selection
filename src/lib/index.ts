@@ -1,7 +1,63 @@
-import { isDOM } from '../util';
+type DOMType = HTMLElement | HTMLDocument | null;
+
+interface SelectionRects {
+  selectionPageRect?: CustomRect;
+  selectionDOMRect?: CustomRect;
+}
+
+type RefitedMouseEvent = MouseEvent & SelectionRects;
+
+interface MouseSelectionOptions {
+  className?: string;
+  zIndex?: number;
+  onMousemove?: (event: RefitedMouseEvent) => void;
+  onMousedown?: (event: MouseEvent) => void;
+  onMouseup?: (event: MouseEvent) => void;
+  disabled?: () => boolean;
+}
+
+interface CustomRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+}
+
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <
+  T
+>() => T extends Y ? 1 : 2
+  ? B
+  : A;
+
+type ReadonlyKeys<T> = {
+  [P in keyof T]-?: IfEquals<
+    { [Q in P]: T[P] },
+    { -readonly [Q in P]: T[P] },
+    never,
+    P
+  >;
+}[keyof T];
+
+// 非只读的CSSStyleDeclaration接口
+type NotReadonlyCSSStyleDeclaration = ReadonlyKeys<CSSStyleDeclaration>;
+
+type StringTypeNotReadonlyCSSStyleDeclaration = Exclude<
+  NotReadonlyCSSStyleDeclaration,
+  number | (() => any)
+>;
+
+interface PositionSizeMap {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 
 function isDOMType(
-  value: DOMType | FrameSelectionOptions | undefined,
+  value: DOMType | MouseSelectionOptions | undefined,
 ): value is DOMType {
   return isDOM(value);
 }
@@ -10,8 +66,7 @@ function isDocument(value: DOMType): value is HTMLDocument {
   return value?.nodeName === '#document';
 }
 
-const rectangleElementInlineStyle =
-  'position: fixed;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
+const rectangleElementInlineStyle = 'position: absolute;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
 
 const getInitCustomRect = () => ({
   left: 0,
@@ -22,13 +77,14 @@ const getInitCustomRect = () => ({
   bottom: 0,
 });
 
-class FrameSelection {
+class MouseSelection {
   // 矩形框选元素
   public rectangleElement!: HTMLElement;
   public targetDom!: DOMType;
   public domRect: CustomRect | DOMRect = getInitCustomRect();
   public selectionPagePositionRect: CustomRect = getInitCustomRect();
   public selectionDOMPositionRect: CustomRect = getInitCustomRect();
+  public config?: MouseSelectionOptions;
   // 用于标记鼠标点下时的坐标
   private startX: number = 0;
   private startY: number = 0;
@@ -37,37 +93,47 @@ class FrameSelection {
   // 矩形框选元素类名
   private readonly RectangleElementClassName =
     'frame-selection-rectangle-element';
+  // 用于计算滚动DOM，如果targetDom是document，则为document.body
+  private wrapDOM: HTMLElement;
   constructor(
-    domOrConfig?: DOMType | FrameSelectionOptions,
-    public config?: FrameSelectionOptions,
+    domOrConfig?: DOMType | MouseSelectionOptions,
+    config?: MouseSelectionOptions,
   ) {
     let dom: DOMType = document;
+    this.config = config;
     if (isDOMType(domOrConfig)) {
       dom = domOrConfig;
+    } else if (!!domOrConfig) {
+      this.config = domOrConfig;
     }
     this.targetDom = dom;
-    this._addMousedownListener(dom);
+    if (isDocument(this.targetDom)) {
+      this.wrapDOM = document.body;
+    } else {
+      this.wrapDOM = this.targetDom!;
+    }
+    this._addMousedownListener(this.targetDom);
   }
   /**
-   * @description 获取框选元素以页面为准的偏移和尺寸信息
+   * @description 获取框选元素以作用DOM为准的偏移和尺寸信息
    * @param left 距离页面左侧距离
    * @param top 距离页面顶部距离
    * @param width 宽度
    * @param height 高度
    */
   public getSelectionPagePosition(
-    currentX: number,
-    currentY: number,
+    x: number,
+    y: number,
   ): CustomRect {
-    currentX = currentX - 2;
-    currentY = currentY - 2;
     const domRect = this.domRect;
-    const left = Math.max(domRect.left, Math.min(this.startX, currentX));
-    const top = Math.max(domRect.top, Math.min(this.startY, currentY));
+    x = x - 2;
+    y = y - 2;
+    const left = Math.max(domRect.left, Math.min(this.startX, x));
+    const top = Math.max(domRect.top, Math.min(this.startY, y));
     const width =
-      Math.max(this.startX, Math.min(currentX, domRect.right - 2)) - left;
+      Math.max(this.startX, Math.min(x, this.wrapDOM!.scrollWidth + domRect.left - 2)) - left;
     const height =
-      Math.max(this.startY, Math.min(currentY, domRect.bottom - 2)) - top;
+      Math.max(this.startY, Math.min(y, this.wrapDOM!.scrollHeight + domRect.top - 2)) - top;
     return {
       left,
       top,
@@ -105,15 +171,11 @@ class FrameSelection {
   /**
    * @description 工具方法，传入一个包含left/top/width/height字段的对象，返回这个参数描述的矩形是否与框选矩形相交
    * @param positionSizeMap {left,top,width,height} 要判断的
-   * @param isBasisOnPage 传入的left和top值是否是基于页面计算的，否则是基于初始化传入的DOM计算的
    */
   public isInTheSelection(
     { left, top, width, height }: PositionSizeMap,
-    isBasisOnPage: boolean = true,
   ) {
-    const { left: x, top: y, width: w, height: h } = isBasisOnPage
-      ? this.selectionPagePositionRect
-      : this.selectionDOMPositionRect;
+    const { left: x, top: y, width: w, height: h } = this.selectionDOMPositionRect;
     return left + width > x && x + w > left && top + height > y && y + h > top;
   }
   /**
@@ -122,13 +184,13 @@ class FrameSelection {
    * @returns 矩形框选元素
    */
   private _createRectangleElement(): HTMLElement {
-    let ele = document.querySelector(
-      `.${this.RectangleElementClassName}`,
-    ) as HTMLElement;
+    let ele = (Array.from(this.wrapDOM!.children) as HTMLElement[]).find(
+      (node) => node.className.includes(this.RectangleElementClassName),
+    );
     if (ele) {
-      document.body.removeChild(ele);
+      this.wrapDOM!.removeChild(ele);
     }
-    ele = document.createElement('div');
+    ele = document.createElement('div') as HTMLElement;
     const customClassName = this.config?.className;
     ele.className =
       this.RectangleElementClassName +
@@ -136,7 +198,7 @@ class FrameSelection {
     ele.style.cssText =
       rectangleElementInlineStyle +
       `z-index: ${this.config?.zIndex || 99999999}`;
-    document.body.appendChild(ele);
+    this.wrapDOM!.appendChild(ele);
     return ele;
   }
   /**
@@ -180,26 +242,33 @@ class FrameSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
+    event.stopPropagation();
     // 如果不是鼠标左键按下不操作
     if (event.button !== 0) {
       return;
     }
     // 如果设置了disabled钩子函数，并且返回值为true，不操作
-    if (this.config?.disabled && this.config?.disabled()) { return; }
+    if (this.config?.disabled && this.config?.disabled()) {
+      return;
+    }
     this.rectangleElement = this._createRectangleElement();
     this.moving = true;
     // 设置所作用的DOM的定位及尺寸信息
     this.domRect = this._getDOMRect(this.targetDom);
+    // 鼠标点下时距离作用DOM的偏移，需要考虑滚动
+    const x = event.pageX + this.wrapDOM!.scrollLeft;
+    const y = event.pageY + this.wrapDOM!.scrollTop;
     // 显示矩形框选元素
     this._setRectangleElementStyle('display', 'block');
     // 设置起始点坐标
-    this._setStartPosition(event.pageX - 2, event.pageY - 2);
+    this._setStartPosition(x - 2, y - 2);
     // 更新矩形框选元素
     this.selectionPagePositionRect = this.getSelectionPagePosition(
-      event.pageX,
-      event.pageY,
+      x,
+      y,
     );
-    this._updateRectangleElementStyle(this.selectionPagePositionRect);
+    this.selectionDOMPositionRect = this.getSelectionDOMPosition(this.selectionPagePositionRect);
+    this._updateRectangleElementStyle(this.selectionDOMPositionRect);
     const callback: ((event: MouseEvent) => void) | undefined = this.config
       ?.onMousedown;
     callback && callback(event);
@@ -214,22 +283,22 @@ class FrameSelection {
     if (!this.moving) {
       return;
     }
+    // 鼠标当前距离作用DOM的偏移，需要考虑滚动
+    const x = event.pageX + this.wrapDOM!.scrollLeft;
+    const y = event.pageY + this.wrapDOM!.scrollTop;
 
     this.selectionPagePositionRect = this.getSelectionPagePosition(
-      event.pageX,
-      event.pageY,
+      x,
+      y,
     );
     const refitedMouseEvent: RefitedMouseEvent = event;
-    refitedMouseEvent.selectionPageRect = JSON.parse(
-      JSON.stringify(this.selectionPagePositionRect),
-    );
     this.selectionDOMPositionRect = this.getSelectionDOMPosition(
       this.selectionPagePositionRect,
     );
     refitedMouseEvent.selectionDOMRect = JSON.parse(
       JSON.stringify(this.selectionDOMPositionRect),
     );
-    this._updateRectangleElementStyle(this.selectionPagePositionRect);
+    this._updateRectangleElementStyle(this.selectionDOMPositionRect);
 
     const callback: ((event: RefitedMouseEvent) => void) | undefined = this
       .config?.onMousemove;
@@ -254,9 +323,10 @@ class FrameSelection {
    * @param value CSS属性值
    */
   private _setRectangleElementStyle(
+    this: MouseSelection,
     props: StringTypeNotReadonlyCSSStyleDeclaration,
     value: string,
-  ) {
+  ): void {
     this.rectangleElement.style[props] = value;
   }
   /**
@@ -273,4 +343,25 @@ class FrameSelection {
   }
 }
 
-export default FrameSelection;
+/**
+ * @description 判断一个值是否是DOM对象
+ * @param object 要判断的值
+ * @returns {boolean}
+ */
+function isDOM(object: any) {
+ if (!object || typeof object !== 'object') {
+   return false;
+ }
+ if (typeof HTMLElement === 'function') {
+   return object instanceof HTMLElement || object instanceof HTMLDocument;
+ } else {
+   return (
+     object &&
+     typeof object === 'object' &&
+     object.nodeType &&
+     typeof object.nodeName === 'string'
+   );
+ }
+}
+
+export default MouseSelection;
