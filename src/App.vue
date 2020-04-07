@@ -8,7 +8,11 @@
       <label for="able">可用</label>
     </div>
     <div class="box">
-      <div v-if="mode === 'wrapper'" class="test-box test-inner-wrapper">
+      <div
+        v-if="mode === 'wrapper'"
+        class="test-box test-inner-wrapper"
+        :class="{ 'selected-wrapper': isInTheBoxList[0] }"
+      >
         <div class="wrapper left-wrapper">
           <div
             class="inner-box"
@@ -18,7 +22,10 @@
             :key="`left_${i}`"
           ></div>
         </div>
-        <div class="wrapper right-wrapper"></div>
+        <div
+          class="wrapper right-wrapper"
+          :class="{ 'selected-wrapper': isInTheBoxList[1] }"
+        ></div>
       </div>
       <div v-else class="test-box test-full-page">可以自定义框选矩形样式</div>
     </div>
@@ -84,7 +91,28 @@ export default class App extends Vue {
       }
     );
     const documentSelection = new MouseSelection({
-        className: "right-wrapper-selection"
+        onMousedown: () => {
+          console.log(123)
+          this.innerBoxRectList = (Array.from(
+            document.querySelectorAll(".wrapper")
+          ) as HTMLElement[]).map((node: HTMLElement) => {
+            return {
+              left: node.offsetLeft,
+              top: node.offsetTop,
+              width: node.offsetWidth,
+              height: node.offsetHeight
+            }
+          });
+        },
+        onMousemove: () => {
+          this.isInTheBoxList = this.innerBoxRectList.map(rect => {
+            console.log(rect)
+            return this.wrapperMouseSelection.isInTheSelection(rect);
+          });
+        },
+        onMouseup: () => {
+          this.isInTheBoxList = [];
+        },
       }
     );
   }
@@ -118,6 +146,9 @@ body,
         position: absolute;
         top: 10px;
         background: rgba(255, 192, 203, 0.3);
+        &.selected-wrapper{
+          background: rgba(255, 192, 203, 0.5);
+        }
         .inner-box {
           width: 100px;
           height: 100px;

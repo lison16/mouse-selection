@@ -55,7 +55,7 @@ class MouseSelection {
     } else {
       this.wrapDOM = this.targetDom!;
     }
-    this._addMousedownListener(dom);
+    this._addMousedownListener(this.targetDom);
   }
   /**
    * @description 获取框选元素以作用DOM为准的偏移和尺寸信息
