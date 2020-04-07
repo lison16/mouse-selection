@@ -1,13 +1,13 @@
 {
     "name": "mouse-selection",
-    "version": "0.1.4",
+    "version": "1.0.0",
     "private": false,
     "scripts": {
         "start": "npm run serve",
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
         "lint": "vue-cli-service lint",
-        "dist": "vue-cli-service build --target lib --name mouse-selection src/lib/index.ts"
+        "dist": "tsc -d true -outDir dist/ src/lib/index.ts"
     },
     "description": "A mouse frame selection plugin using JavaScript",
     "author": "Lison<lison16new@163.com>",
@@ -42,7 +42,8 @@
     "gitHooks": {
         "pre-commit": "lint-staged"
     },
-    "main": "dist/mouse-selection.umd.min.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "lint-staged": {
         "*.ts": [
             "vue-cli-service lint",

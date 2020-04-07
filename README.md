@@ -15,40 +15,53 @@ npm install mouse-selection
 ```javascript
 import MouseSelection from "mouse-selection";
 
-new MouseSelection(
-    document.querySelector(".left-wrapper"), // 需要作用的DOM，如果不传则为document
+this.wrapperMouseSelection = new MouseSelection(
+    document.querySelector(".left-wrapper"),
     {
+        onMousedown: () => {
+            this.innerBoxRectList = (Array.from(
+            document.querySelectorAll(".inner-box")
+            ) as HTMLElement[]).map((node: HTMLElement) => {
+            return {
+                left: node.offsetLeft,
+                top: node.offsetTop,
+                width: node.offsetWidth,
+                height: node.offsetHeight
+            }
+            });
+        },
+        onMousemove: () => {
+            this.isInTheBoxList = this.innerBoxRectList.map(rect => {
+            return this.wrapperMouseSelection.isInTheSelection(rect);
+            });
+        },
+        onMouseup: () => {
+            this.isInTheBoxList = [];
+        },
+        disabled: () => this.usable === "disabled"
+    }
+);
+new MouseSelection(
+    document.querySelector(".right-wrapper"),
+    {
+        className: "right-wrapper-selection"
+    }
+);
+const documentSelection = new MouseSelection(document, {
     onMousedown: () => {
-        this.innerBoxRectList = Array.from(
-        document.querySelectorAll(".inner-box")
-        ).map(item => item.getBoundingClientRect());
+        this.innerBoxRectList = (Array.from(
+                document.querySelectorAll(".wrapper")
+        ) as HTMLElement[]).map((node: HTMLElement) => {
+            return node.getBoundingClientRect()
+        });
     },
-    onMousemove: () => {
-        this.isInTheBoxList = this.innerBoxRectList.map(rect => {
-        return this.wrapperMouseSelection.isInTheSelection(rect);
+    onMousemove: (event) => {
+        this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
+            return documentSelection.isInTheSelection(rect);
         });
     },
     onMouseup: () => {
-        this.isInTheBoxList = [];
+        this.isInTheBoxWrapList = [];
     },
-    disabled: () => this.usable === "disabled"
-});
-
-new MouseSelection({
-    onMousedown: (event) => {
-        this.innerBoxRectList = Array.from(
-        document.querySelectorAll(".inner-box")
-        ).map(item => item.getBoundingClientRect());
-    },
-    onMousemove: (event) => {
-        this.isInTheBoxList = this.innerBoxRectList.map(rect => {
-        return this.wrapperMouseSelection.isInTheSelection(rect);
-        });
-    },
-    onMouseup: (event) => {
-        this.isInTheBoxList = [];
-    },
-    zIndex: 9999,
-    className: "right-wrapper-selection"
 });
 ```

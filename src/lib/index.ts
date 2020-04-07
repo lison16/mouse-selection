@@ -84,6 +84,7 @@ class MouseSelection {
   public domRect: CustomRect | DOMRect = getInitCustomRect();
   public selectionPagePositionRect: CustomRect = getInitCustomRect();
   public selectionDOMPositionRect: CustomRect = getInitCustomRect();
+  public config?: MouseSelectionOptions;
   // 用于标记鼠标点下时的坐标
   private startX: number = 0;
   private startY: number = 0;
@@ -96,11 +97,14 @@ class MouseSelection {
   private wrapDOM: HTMLElement;
   constructor(
     domOrConfig?: DOMType | MouseSelectionOptions,
-    public config?: MouseSelectionOptions,
+    config?: MouseSelectionOptions,
   ) {
     let dom: DOMType = document;
+    this.config = config;
     if (isDOMType(domOrConfig)) {
       dom = domOrConfig;
+    } else if (!!domOrConfig) {
+      this.config = domOrConfig;
     }
     this.targetDom = dom;
     if (isDocument(this.targetDom)) {
@@ -345,16 +349,16 @@ class MouseSelection {
  * @returns {boolean}
  */
 function isDOM(object: any) {
- if (typeof object !== 'object') {
+ if (!object || typeof object !== 'object') {
    return false;
  }
- if (typeof HTMLElement === 'object') {
-   return object instanceof HTMLElement;
+ if (typeof HTMLElement === 'function') {
+   return object instanceof HTMLElement || object instanceof HTMLDocument;
  } else {
    return (
      object &&
      typeof object === 'object' &&
-     object.nodeType === 1 &&
+     object.nodeType &&
      typeof object.nodeName === 'string'
    );
  }

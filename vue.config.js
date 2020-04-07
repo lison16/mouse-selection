@@ -10,6 +10,11 @@ module.exports = {
         config.resolve.alias
             .set('@', resolve('src'))
     },
+    configureWebpack: {
+        output: {
+            libraryExport: 'default'
+        }
+    },
     // 设为false打包时不生成.map文件
     productionSourceMap: false
 }

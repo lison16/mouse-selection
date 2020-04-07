@@ -11,9 +11,11 @@
       <div
         v-if="mode === 'wrapper'"
         class="test-box test-inner-wrapper"
-        :class="{ 'selected-wrapper': isInTheBoxList[0] }"
       >
-        <div class="wrapper left-wrapper">
+        <div
+          class="wrapper left-wrapper"
+          :class="{ 'selected-wrapper': isInTheBoxWrapList[0] }"
+        >
           <div
             class="inner-box"
             :class="{ 'selected-box': isInTheBoxList[i - 1] }"
@@ -24,7 +26,7 @@
         </div>
         <div
           class="wrapper right-wrapper"
-          :class="{ 'selected-wrapper': isInTheBoxList[1] }"
+          :class="{ 'selected-wrapper': isInTheBoxWrapList[1] }"
         ></div>
       </div>
       <div v-else class="test-box test-full-page">可以自定义框选矩形样式</div>
@@ -35,6 +37,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import MouseSelection from "./lib/index";
+// import MouseSelection from '../dist/index'
 
 interface CustomRect {
   left: number;
@@ -54,6 +57,7 @@ export default class App extends Vue {
   public wrapperMouseSelection!: MouseSelection;
   public selectionPageRect!: object;
   public isInTheBoxList: boolean[] = [];
+  public isInTheBoxWrapList: boolean[] = [];
   public innerBoxRectList: CustomRect[] = [];
   public usable = "able";
   public isInnerSelection() {}
@@ -90,28 +94,21 @@ export default class App extends Vue {
         className: "right-wrapper-selection"
       }
     );
-    const documentSelection = new MouseSelection({
+    const documentSelection = new MouseSelection(document, {
         onMousedown: () => {
-          console.log(123)
           this.innerBoxRectList = (Array.from(
             document.querySelectorAll(".wrapper")
           ) as HTMLElement[]).map((node: HTMLElement) => {
-            return {
-              left: node.offsetLeft,
-              top: node.offsetTop,
-              width: node.offsetWidth,
-              height: node.offsetHeight
-            }
+            return node.getBoundingClientRect()
           });
         },
-        onMousemove: () => {
-          this.isInTheBoxList = this.innerBoxRectList.map(rect => {
-            console.log(rect)
-            return this.wrapperMouseSelection.isInTheSelection(rect);
+        onMousemove: (event) => {
+          this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
+            return documentSelection.isInTheSelection(rect);
           });
         },
         onMouseup: () => {
-          this.isInTheBoxList = [];
+          this.isInTheBoxWrapList = [];
         },
       }
     );
