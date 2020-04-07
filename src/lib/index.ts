@@ -1,4 +1,60 @@
-import { isDOM } from '../util';
+type DOMType = HTMLElement | HTMLDocument | null;
+
+interface SelectionRects {
+  selectionPageRect?: CustomRect;
+  selectionDOMRect?: CustomRect;
+}
+
+type RefitedMouseEvent = MouseEvent & SelectionRects;
+
+interface MouseSelectionOptions {
+  className?: string;
+  zIndex?: number;
+  onMousemove?: (event: RefitedMouseEvent) => void;
+  onMousedown?: (event: MouseEvent) => void;
+  onMouseup?: (event: MouseEvent) => void;
+  disabled?: () => boolean;
+}
+
+interface CustomRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+}
+
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <
+  T
+>() => T extends Y ? 1 : 2
+  ? B
+  : A;
+
+type ReadonlyKeys<T> = {
+  [P in keyof T]-?: IfEquals<
+    { [Q in P]: T[P] },
+    { -readonly [Q in P]: T[P] },
+    never,
+    P
+  >;
+}[keyof T];
+
+// 非只读的CSSStyleDeclaration接口
+type NotReadonlyCSSStyleDeclaration = ReadonlyKeys<CSSStyleDeclaration>;
+
+type StringTypeNotReadonlyCSSStyleDeclaration = Exclude<
+  NotReadonlyCSSStyleDeclaration,
+  number | (() => any)
+>;
+
+interface PositionSizeMap {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 
 function isDOMType(
   value: DOMType | MouseSelectionOptions | undefined,
@@ -281,6 +337,27 @@ class MouseSelection {
     this._setRectangleElementStyle('width', `${width}px`);
     this._setRectangleElementStyle('height', `${height}px`);
   }
+}
+
+/**
+ * @description 判断一个值是否是DOM对象
+ * @param object 要判断的值
+ * @returns {boolean}
+ */
+function isDOM(object: any) {
+ if (typeof object !== 'object') {
+   return false;
+ }
+ if (typeof HTMLElement === 'object') {
+   return object instanceof HTMLElement;
+ } else {
+   return (
+     object &&
+     typeof object === 'object' &&
+     object.nodeType === 1 &&
+     typeof object.nodeName === 'string'
+   );
+ }
 }
 
 export default MouseSelection;
