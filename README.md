@@ -38,13 +38,15 @@ this.wrapperMouseSelection = new MouseSelection(
         onMouseup: () => {
             this.isInTheBoxList = [];
         },
-        disabled: () => this.usable === "disabled"
+        disabled: () => this.usable === "disabled",
+        stopPropagation: true
     }
 );
 new MouseSelection(
     document.querySelector(".right-wrapper"),
     {
-        className: "right-wrapper-selection"
+        className: "right-wrapper-selection",
+        stopPropagation: true
     }
 );
 const documentSelection = new MouseSelection(document, {

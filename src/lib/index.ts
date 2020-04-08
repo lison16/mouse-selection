@@ -14,6 +14,7 @@ interface MouseSelectionOptions {
   onMousedown?: (event: MouseEvent) => void;
   onMouseup?: (event: MouseEvent) => void;
   disabled?: () => boolean;
+  stopPropagation?: boolean;
 }
 
 interface CustomRect {
@@ -242,7 +243,7 @@ class MouseSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
-    event.stopPropagation();
+    if (this.config?.stopPropagation) { event.stopPropagation(); }
     // 如果不是鼠标左键按下不操作
     if (event.button !== 0) {
       return;
