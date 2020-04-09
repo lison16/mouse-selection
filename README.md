@@ -49,7 +49,8 @@ new MouseSelection(
         stopPropagation: true
     }
 );
-const documentSelection = new MouseSelection(document, {
+// 第一个参数不传或传document，均是作用于整个页面
+const documentSelection = new MouseSelection({
     onMousedown: () => {
         this.innerBoxRectList = (Array.from(
                 document.querySelectorAll(".wrapper")
