@@ -6,6 +6,8 @@
       <label for="disabled">不可用</label>
       <input type="radio" id="able" value="able" v-model="usable" />
       <label for="able">可用</label>
+      <button @click="destroyRight" style="margin-left: 20px;">注销右侧框选</button>
+      <span>注销后，右侧内部框选失效，但是作用在document上的还存在</span>
     </div>
     <div class="box">
       <div
@@ -55,12 +57,17 @@ interface CustomRect {
 })
 export default class App extends Vue {
   public wrapperMouseSelection!: MouseSelection;
+  public rightWrapperMouseSelection!: MouseSelection;
+  public documentSelection!: MouseSelection;
   public selectionPageRect!: object;
   public isInTheBoxList: boolean[] = [];
   public isInTheBoxWrapList: boolean[] = [];
   public innerBoxRectList: CustomRect[] = [];
   public usable = "able";
   public isInnerSelection() {}
+  public destroyRight () {
+    this.rightWrapperMouseSelection.destroy()
+  }
   protected mounted() {
     this.wrapperMouseSelection = new MouseSelection(
       document.querySelector(".left-wrapper"),
@@ -89,14 +96,14 @@ export default class App extends Vue {
         stopPropagation: true
       }
     );
-    new MouseSelection(
+    this.rightWrapperMouseSelection = new MouseSelection(
       document.querySelector(".right-wrapper"),
       {
         className: "right-wrapper-selection",
         stopPropagation: true
       }
     );
-    const documentSelection = new MouseSelection(document, {
+    this.documentSelection = new MouseSelection(document, {
         onMousedown: () => {
           this.innerBoxRectList = (Array.from(
             document.querySelectorAll(".wrapper")
@@ -106,7 +113,7 @@ export default class App extends Vue {
         },
         onMousemove: (event) => {
           this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
-            return documentSelection.isInTheSelection(rect);
+            return this.documentSelection.isInTheSelection(rect);
           });
         },
         onMouseup: () => {
