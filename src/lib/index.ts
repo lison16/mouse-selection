@@ -14,6 +14,7 @@ interface MouseSelectionOptions {
   onMousedown?: (event: MouseEvent) => void;
   onMouseup?: (event: MouseEvent) => void;
   disabled?: () => boolean;
+  stopPropagation?: boolean;
 }
 
 interface CustomRect {
@@ -179,6 +180,22 @@ class MouseSelection {
     return left + width > x && x + w > left && top + height > y && y + h > top;
   }
   /**
+   * @description 注销方法
+   */
+  public destroy(): void {
+    this.rectangleElement && this.wrapDOM.removeChild(this.rectangleElement);
+    this._removeMousedownListener(this.targetDom);
+    this.rectangleElement = null;
+    this.targetDom = null;
+    this.domRect = null;
+    this.selectionPagePositionRect = null;
+    this.selectionDOMPositionRect = null;
+    this.startX = null;
+    this.startY = null;
+    this.moving = null;
+    this.wrapDOM = null;
+  }
+  /**
    * @description 在document.body中创建矩形框选元素
    *              不管事件绑定到哪个DOM，矩形框选元素都添加到document.body
    * @returns 矩形框选元素
@@ -221,6 +238,13 @@ class MouseSelection {
     );
   }
   /**
+   * @description 解绑mousedown事件
+   * @param dom 要解绑事件的dom
+   */
+  private _removeMousedownListener(dom: DOMType) {
+    dom?.removeEventListener('mousedown', this._selectStart as (event: Event) => void);
+  }
+  /**
    * @description 获取DOM的Rect信息，如果是document，只返回6个值
    * @param dom 要获取Rect信息的dom
    */
@@ -242,7 +266,7 @@ class MouseSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
-    event.stopPropagation();
+    if (this.config?.stopPropagation) { event.stopPropagation(); }
     // 如果不是鼠标左键按下不操作
     if (event.button !== 0) {
       return;
