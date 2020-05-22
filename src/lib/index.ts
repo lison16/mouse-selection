@@ -15,6 +15,7 @@ interface MouseSelectionOptions {
   onMouseup?: (event: MouseEvent) => void;
   disabled?: () => boolean;
   stopPropagation?: boolean;
+  stopSelector?: string;
 }
 
 interface CustomRect {
@@ -266,6 +267,12 @@ class MouseSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
+    if (
+      this.config.stopSelector
+      && findNode(event.target as Element, document.querySelector(this.config.stopSelector) as DOMType)
+    ) {
+      return;
+    }
     if (this.config?.stopPropagation) { event.stopPropagation(); }
     // 如果不是鼠标左键按下不操作
     if (event.button !== 0) {
@@ -386,6 +393,23 @@ function isDOM(object: any) {
      typeof object.nodeName === 'string'
    );
  }
+}
+
+/**
+ * @description 判断当前点击的元素是否是给定的元素，或其父级是否是给定的元素
+ * @param target 当前鼠标点中的节点
+ * @param dom 要找的节点
+ */
+function findNode(target: Element, dom: DOMType): boolean {
+  if (target === dom) {
+    return true;
+  } else {
+    if (target.parentNode) {
+      return findNode(target.parentNode as Element, dom);
+    } else {
+      return false;
+    }
+  }
 }
 
 export default MouseSelection;
