@@ -20,11 +20,11 @@
         >
           <div
             class="inner-box"
-            :class="{ 'selected-box': isInTheBoxList[i - 1] }"
+            :class="{ 'selected-box': isInTheBoxList[i - 1], 'disabled': i === 2 }"
             v-for="i in 50"
             :id="`left_inner_box_${i}`"
             :key="`left_${i}`"
-          ></div>
+          >{{ i === 2 ? '这个不能触发框选' : '' }}</div>
         </div>
         <div
           class="wrapper right-wrapper"
@@ -93,6 +93,7 @@ export default class App extends Vue {
           this.isInTheBoxList = [];
         },
         disabled: () => this.usable === "disabled",
+        stopSelector: 'div.disabled',
         stopPropagation: true
       }
     );
@@ -103,24 +104,24 @@ export default class App extends Vue {
         stopPropagation: true
       }
     );
-    this.documentSelection = new MouseSelection(document, {
-        onMousedown: () => {
-          this.innerBoxRectList = (Array.from(
-            document.querySelectorAll(".wrapper")
-          ) as HTMLElement[]).map((node: HTMLElement) => {
-            return node.getBoundingClientRect()
-          });
-        },
-        onMousemove: (event) => {
-          this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
-            return this.documentSelection.isInTheSelection(rect);
-          });
-        },
-        onMouseup: () => {
-          this.isInTheBoxWrapList = [];
-        },
-      }
-    );
+    // this.documentSelection = new MouseSelection(document, {
+    //     onMousedown: () => {
+    //       this.innerBoxRectList = (Array.from(
+    //         document.querySelectorAll(".wrapper")
+    //       ) as HTMLElement[]).map((node: HTMLElement) => {
+    //         return node.getBoundingClientRect()
+    //       });
+    //     },
+    //     onMousemove: (event) => {
+    //       this.isInTheBoxWrapList = this.innerBoxRectList.map(rect => {
+    //         return this.documentSelection.isInTheSelection(rect);
+    //       });
+    //     },
+    //     onMouseup: () => {
+    //       this.isInTheBoxWrapList = [];
+    //     },
+    //   }
+    // );
   }
 }
 </script>
@@ -162,6 +163,7 @@ body,
           display: inline-block;
           margin-left: 20px;
           margin-top: 20px;
+          vertical-align: top;
           &.selected-box {
             background: rgba(255, 192, 203, 1);
           }

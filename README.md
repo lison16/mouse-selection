@@ -39,6 +39,7 @@ this.wrapperMouseSelection = new MouseSelection(
             this.isInTheBoxList = [];
         },
         disabled: () => this.usable === "disabled",
+        stopSelector: 'div.disabled',
         stopPropagation: true
     }
 );
