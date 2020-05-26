@@ -40,7 +40,8 @@ this.wrapperMouseSelection = new MouseSelection(
         },
         disabled: () => this.usable === "disabled",
         stopSelector: 'div.disabled',
-        stopPropagation: true
+        stopPropagation: true,
+        notSetWrapPosition: false, // 设为true则不会给作用容器设置position: relative，默认为false
     }
 );
 new MouseSelection(

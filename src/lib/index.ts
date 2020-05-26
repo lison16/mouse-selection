@@ -16,6 +16,7 @@ interface MouseSelectionOptions {
   disabled?: () => boolean;
   stopPropagation?: boolean;
   stopSelector?: string;
+  notSetWrapPosition?: boolean;
 }
 
 interface CustomRect {
@@ -114,6 +115,7 @@ class MouseSelection {
     } else {
       this.wrapDOM = this.targetDom!;
     }
+    this._setWrapDomPositionStyle();
     this._addMousedownListener(this.targetDom);
   }
   /**
@@ -195,6 +197,18 @@ class MouseSelection {
     this.startY = null;
     this.moving = null;
     this.wrapDOM = null;
+  }
+  /**
+   * @description 如果未明确设置notSetWrapPosition为true，则给作用容器加position: relative属性
+   */
+  private _setWrapDomPositionStyle(): void {
+    if (this.config?.notSetWrapPosition) {
+      return;
+    }
+    const position = getComputedStyle(this.wrapDOM).position;
+    if (position === 'static') {
+      this.wrapDOM.style.position = 'relative';
+    }
   }
   /**
    * @description 在document.body中创建矩形框选元素

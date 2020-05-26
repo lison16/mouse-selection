@@ -8,6 +8,7 @@
       <label for="able">可用</label>
       <button @click="destroyRight" style="margin-left: 20px;">注销右侧框选</button>
       <span>注销后，右侧内部框选失效，但是作用在document上的还存在</span>
+      <button @click="handleShowModal">显示弹窗</button>
     </div>
     <div class="box">
       <div
@@ -33,6 +34,9 @@
       </div>
       <div v-else class="test-box test-full-page">可以自定义框选矩形样式</div>
     </div>
+    <div v-show="showModal" class="modal">
+      <div ref="content" class="content"></div>
+    </div>
   </div>
 </template>
 
@@ -51,7 +55,7 @@ interface CustomRect {
 @Component({
   data() {
     return {
-      mode: "wrapper"
+      mode: "wrapper",
     };
   }
 })
@@ -63,10 +67,25 @@ export default class App extends Vue {
   public isInTheBoxList: boolean[] = [];
   public isInTheBoxWrapList: boolean[] = [];
   public innerBoxRectList: CustomRect[] = [];
+  public showModal = false;
   public usable = "able";
   public isInnerSelection() {}
+  public $refs: {
+    content: HTMLElement
+  }
   public destroyRight () {
     this.rightWrapperMouseSelection.destroy()
+  }
+  public handleShowModal() {
+    this.showModal = true
+    setTimeout(() => {
+      this.rightWrapperMouseSelection = new MouseSelection(
+       this.$refs.content,
+        {
+          stopPropagation: true
+        }
+      );
+    }, 500)
   }
   protected mounted() {
     this.wrapperMouseSelection = new MouseSelection(
@@ -181,5 +200,22 @@ body,
 }
 .right-wrapper-selection {
   border-style: dashed !important;
+}
+.modal{
+  position: fixed;
+  width: 700px;
+  height: 500px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: bisque;
+  z-index: 999;
+  .content{
+    width: 500px;
+    height: 100%;
+    background: darkkhaki;
+    float: right;
+    // position: relative;
+  }
 }
 </style>
