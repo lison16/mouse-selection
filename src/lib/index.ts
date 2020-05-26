@@ -281,10 +281,9 @@ class MouseSelection {
    * @param event 鼠标事件对象
    */
   private _selectStart = (event: MouseEvent) => {
-    if (
-      this.config.stopSelector
-      && findNode(event.target as Element, document.querySelector(this.config.stopSelector) as DOMType)
-    ) {
+    const nodeList = document.querySelectorAll(this.config.stopSelector);
+    const isStopNode = findNode(event.target as Element, Array.from(nodeList) as DOMType[]);
+    if ( this.config.stopSelector && isStopNode ) {
       return;
     }
     if (this.config?.stopPropagation) { event.stopPropagation(); }
@@ -414,12 +413,12 @@ function isDOM(object: any) {
  * @param target 当前鼠标点中的节点
  * @param dom 要找的节点
  */
-function findNode(target: Element, dom: DOMType): boolean {
-  if (target === dom) {
+function findNode(target: Element, nodeList: DOMType[]): boolean {
+  if (nodeList.some((node) => target === node)) {
     return true;
   } else {
     if (target.parentNode) {
-      return findNode(target.parentNode as Element, dom);
+      return findNode(target.parentNode as Element, nodeList);
     } else {
       return false;
     }
