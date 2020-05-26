@@ -1,6 +1,6 @@
 {
     "name": "mouse-selection",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "private": false,
     "scripts": {
         "start": "npm run serve",
