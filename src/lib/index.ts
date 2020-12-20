@@ -217,7 +217,7 @@ class MouseSelection {
    */
   private _createRectangleElement(): HTMLElement {
     let ele = (Array.from(this.wrapDOM!.children) as HTMLElement[]).find(
-      (node) => node.className.includes(this.RectangleElementClassName),
+      (node) => Array.from(node.className).includes(this.RectangleElementClassName),
     );
     if (ele) {
       this.wrapDOM!.removeChild(ele);
@@ -371,7 +371,7 @@ class MouseSelection {
     props: StringTypeNotReadonlyCSSStyleDeclaration,
     value: string,
   ): void {
-    this.rectangleElement.style[props] = value;
+    (this.rectangleElement as any).style[props] = value;
   }
   /**
    * @description 更新矩形框选元素样式
