@@ -217,7 +217,7 @@ class MouseSelection {
    */
   private _createRectangleElement(): HTMLElement {
     let ele = (Array.from(this.wrapDOM!.children) as HTMLElement[]).find(
-      (node) => Array.from(node.className).includes(this.RectangleElementClassName),
+      (node) => Array.from(node.classList).includes(this.RectangleElementClassName),
     );
     if (ele) {
       this.wrapDOM!.removeChild(ele);
