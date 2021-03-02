@@ -300,8 +300,8 @@ class MouseSelection {
     // 设置所作用的DOM的定位及尺寸信息
     this.domRect = this._getDOMRect(this.targetDom);
     // 鼠标点下时距离作用DOM的偏移，需要考虑滚动
-    const x = event.pageX + this.wrapDOM!.scrollLeft;
-    const y = event.pageY + this.wrapDOM!.scrollTop;
+    const x = event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset;
+    const y = event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset;
     // 显示矩形框选元素
     this._setRectangleElementStyle('display', 'block');
     // 设置起始点坐标
@@ -328,8 +328,8 @@ class MouseSelection {
       return;
     }
     // 鼠标当前距离作用DOM的偏移，需要考虑滚动
-    const x = event.pageX + this.wrapDOM!.scrollLeft;
-    const y = event.pageY + this.wrapDOM!.scrollTop;
+    const x = event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset;
+    const y = event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset;
 
     this.selectionPagePositionRect = this.getSelectionPagePosition(
       x,
