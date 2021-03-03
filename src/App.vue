@@ -162,6 +162,7 @@ body,
   .box {
     position: absolute;
     height: ~"calc(100% - 50px)";
+    //模拟浏览器滚动条的情况 : width设置Wie1500px;
     width: 100%;
     top: 50px;
     .test-box {
