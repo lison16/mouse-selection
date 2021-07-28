@@ -9,6 +9,7 @@ type RefitedMouseEvent = MouseEvent & SelectionRects;
 
 interface MouseSelectionOptions {
   className?: string;
+  scale?: number;
   zIndex?: number;
   onMousemove?: (event: RefitedMouseEvent) => void;
   onMousedown?: (event: MouseEvent) => void;
@@ -69,6 +70,24 @@ function isDocument(value: DOMType): value is HTMLDocument {
   return value?.nodeName === '#document';
 }
 
+/**
+ * 缩放rect
+ */
+function scaleRect(rect: CustomRect, scale: number) {
+  if (scale === 1) {
+    return rect;
+  }
+  
+  return {
+    left: rect.left * scale,
+    top: rect.top * scale,
+    width: rect.width * scale,
+    height: rect.height * scale,
+    right: rect.right * scale,
+    bottom: rect.bottom * scale,
+  }
+}
+
 const rectangleElementInlineStyle = 'position: absolute;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
 
 const getInitCustomRect = () => ({
@@ -91,6 +110,8 @@ class MouseSelection {
   // 用于标记鼠标点下时的坐标
   private startX: number = 0;
   private startY: number = 0;
+  // 是否有缩放
+  private scale: number = 1.0;
   // 当前是否在框选
   private moving: boolean = false;
   // 矩形框选元素类名
@@ -115,6 +136,7 @@ class MouseSelection {
     } else {
       this.wrapDOM = this.targetDom!;
     }
+    this.scale = this.config.scale || 1.0; // 默认无缩放
     this._setWrapDomPositionStyle();
     this._addMousedownListener(this.targetDom);
   }
@@ -274,7 +296,7 @@ class MouseSelection {
           bottom: window.innerHeight,
         }
       : dom!.getBoundingClientRect();
-    return domRect;
+    return scaleRect(domRect, this.scale);
   }
   /**
    * @description mousedown事件回调
@@ -299,9 +321,9 @@ class MouseSelection {
     this.moving = true;
     // 设置所作用的DOM的定位及尺寸信息
     this.domRect = this._getDOMRect(this.targetDom);
-    // 鼠标点下时距离作用DOM的偏移，需要考虑滚动
-    const x = event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset;
-    const y = event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset;
+    // 鼠标点下时距离作用DOM的偏移，需要考虑滚动，还需要考虑缩放
+    const x = (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) / this.scale;
+    const y = (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
     // 显示矩形框选元素
     this._setRectangleElementStyle('display', 'block');
     // 设置起始点坐标
@@ -327,9 +349,9 @@ class MouseSelection {
     if (!this.moving) {
       return;
     }
-    // 鼠标当前距离作用DOM的偏移，需要考虑滚动
-    const x = event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset;
-    const y = event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset;
+    // 鼠标当前距离作用DOM的偏移，需要考虑滚动, 还需要考虑缩放
+    const x = (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) / this.scale;
+    const y = (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
 
     this.selectionPagePositionRect = this.getSelectionPagePosition(
       x,
