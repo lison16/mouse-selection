@@ -59,7 +59,6 @@ interface PositionSizeMap {
   height: number;
 }
 
-
 function isDOMType(
   value: DOMType | MouseSelectionOptions | undefined,
 ): value is DOMType {
@@ -77,7 +76,7 @@ function scaleRect(rect: CustomRect, scale: number) {
   if (scale === 1) {
     return rect;
   }
-  
+
   return {
     left: rect.left * scale,
     top: rect.top * scale,
@@ -85,10 +84,11 @@ function scaleRect(rect: CustomRect, scale: number) {
     height: rect.height * scale,
     right: rect.right * scale,
     bottom: rect.bottom * scale,
-  }
+  };
 }
 
-const rectangleElementInlineStyle = 'position: absolute;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
+const rectangleElementInlineStyle =
+  'position: absolute;pointer-events: none;border: 1px solid rgb(45, 140, 240);background: rgba(45, 140, 240, 0.2);';
 
 const getInitCustomRect = () => ({
   left: 0,
@@ -147,19 +147,22 @@ class MouseSelection {
    * @param width 宽度
    * @param height 高度
    */
-  public getSelectionPagePosition(
-    x: number,
-    y: number,
-  ): CustomRect {
+  public getSelectionPagePosition(x: number, y: number): CustomRect {
     const domRect = this.domRect;
     x = x - 2;
     y = y - 2;
     const left = Math.max(domRect.left, Math.min(this.startX, x));
     const top = Math.max(domRect.top, Math.min(this.startY, y));
     const width =
-      Math.max(this.startX, Math.min(x, this.wrapDOM!.scrollWidth + domRect.left - 2)) - left;
+      Math.max(
+        this.startX,
+        Math.min(x, this.wrapDOM!.scrollWidth + domRect.left - 2),
+      ) - left;
     const height =
-      Math.max(this.startY, Math.min(y, this.wrapDOM!.scrollHeight + domRect.top - 2)) - top;
+      Math.max(
+        this.startY,
+        Math.min(y, this.wrapDOM!.scrollHeight + domRect.top - 2),
+      ) - top;
     return {
       left,
       top,
@@ -198,10 +201,13 @@ class MouseSelection {
    * @description 工具方法，传入一个包含left/top/width/height字段的对象，返回这个参数描述的矩形是否与框选矩形相交
    * @param positionSizeMap {left,top,width,height} 要判断的
    */
-  public isInTheSelection(
-    { left, top, width, height }: PositionSizeMap,
-  ) {
-    const { left: x, top: y, width: w, height: h } = this.selectionDOMPositionRect;
+  public isInTheSelection({ left, top, width, height }: PositionSizeMap) {
+    const {
+      left: x,
+      top: y,
+      width: w,
+      height: h,
+    } = this.selectionDOMPositionRect;
     return left + width > x && x + w > left && top + height > y && y + h > top;
   }
   /**
@@ -238,8 +244,10 @@ class MouseSelection {
    * @returns 矩形框选元素
    */
   private _createRectangleElement(): HTMLElement {
-    let ele = (Array.from(this.wrapDOM!.children) as HTMLElement[]).find(
-      (node) => Array.from(node.classList).includes(this.RectangleElementClassName),
+    let ele = (Array.from(
+      this.wrapDOM!.children,
+    ) as HTMLElement[]).find((node) =>
+      Array.from(node.classList).includes(this.RectangleElementClassName),
     );
     if (ele) {
       this.wrapDOM!.removeChild(ele);
@@ -279,7 +287,10 @@ class MouseSelection {
    * @param dom 要解绑事件的dom
    */
   private _removeMousedownListener(dom: DOMType) {
-    dom?.removeEventListener('mousedown', this._selectStart as (event: Event) => void);
+    dom?.removeEventListener(
+      'mousedown',
+      this._selectStart as (event: Event) => void,
+    );
   }
   /**
    * @description 获取DOM的Rect信息，如果是document，只返回6个值
@@ -296,7 +307,7 @@ class MouseSelection {
           bottom: window.innerHeight,
         }
       : dom!.getBoundingClientRect();
-    return scaleRect(domRect, this.scale);
+    return scaleRect(domRect, 1 / this.scale);
   }
   /**
    * @description mousedown事件回调
@@ -304,11 +315,16 @@ class MouseSelection {
    */
   private _selectStart = (event: MouseEvent) => {
     const nodeList = document.querySelectorAll(this.config.stopSelector);
-    const isStopNode = findNode(event.target as Element, Array.from(nodeList) as DOMType[]);
-    if ( this.config.stopSelector && isStopNode ) {
+    const isStopNode = findNode(
+      event.target as Element,
+      Array.from(nodeList) as DOMType[],
+    );
+    if (this.config.stopSelector && isStopNode) {
       return;
     }
-    if (this.config?.stopPropagation) { event.stopPropagation(); }
+    if (this.config?.stopPropagation) {
+      event.stopPropagation();
+    }
     // 如果不是鼠标左键按下不操作
     if (event.button !== 0) {
       return;
@@ -322,18 +338,20 @@ class MouseSelection {
     // 设置所作用的DOM的定位及尺寸信息
     this.domRect = this._getDOMRect(this.targetDom);
     // 鼠标点下时距离作用DOM的偏移，需要考虑滚动，还需要考虑缩放
-    const x = (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) / this.scale;
-    const y = (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
+    const x =
+      (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) /
+      this.scale;
+    const y =
+      (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
     // 显示矩形框选元素
     this._setRectangleElementStyle('display', 'block');
     // 设置起始点坐标
     this._setStartPosition(x - 2, y - 2);
     // 更新矩形框选元素
-    this.selectionPagePositionRect = this.getSelectionPagePosition(
-      x,
-      y,
+    this.selectionPagePositionRect = this.getSelectionPagePosition(x, y);
+    this.selectionDOMPositionRect = this.getSelectionDOMPosition(
+      this.selectionPagePositionRect,
     );
-    this.selectionDOMPositionRect = this.getSelectionDOMPosition(this.selectionPagePositionRect);
     this._updateRectangleElementStyle(this.selectionDOMPositionRect);
     const callback: ((event: MouseEvent) => void) | undefined = this.config
       ?.onMousedown;
@@ -350,13 +368,13 @@ class MouseSelection {
       return;
     }
     // 鼠标当前距离作用DOM的偏移，需要考虑滚动, 还需要考虑缩放
-    const x = (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) / this.scale;
-    const y = (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
+    const x =
+      (event.pageX + this.wrapDOM!.scrollLeft - window.pageXOffset) /
+      this.scale;
+    const y =
+      (event.pageY + this.wrapDOM!.scrollTop - window.pageYOffset) / this.scale;
 
-    this.selectionPagePositionRect = this.getSelectionPagePosition(
-      x,
-      y,
-    );
+    this.selectionPagePositionRect = this.getSelectionPagePosition(x, y);
     const refitedMouseEvent: RefitedMouseEvent = event;
     this.selectionDOMPositionRect = this.getSelectionDOMPosition(
       this.selectionPagePositionRect,
@@ -415,19 +433,19 @@ class MouseSelection {
  * @returns {boolean}
  */
 function isDOM(object: any) {
- if (!object || typeof object !== 'object') {
-   return false;
- }
- if (typeof HTMLElement === 'function') {
-   return object instanceof HTMLElement || object instanceof HTMLDocument;
- } else {
-   return (
-     object &&
-     typeof object === 'object' &&
-     object.nodeType &&
-     typeof object.nodeName === 'string'
-   );
- }
+  if (!object || typeof object !== 'object') {
+    return false;
+  }
+  if (typeof HTMLElement === 'function') {
+    return object instanceof HTMLElement || object instanceof HTMLDocument;
+  } else {
+    return (
+      object &&
+      typeof object === 'object' &&
+      object.nodeType &&
+      typeof object.nodeName === 'string'
+    );
+  }
 }
 
 /**
